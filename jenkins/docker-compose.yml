@@ -1,0 +1,81 @@
+services:
+  # Jenkins Server - Controlador principal
+  jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jenkins-controller
+    privileged: true
+    user: root
+    ports:
+      - "8080:8080"     # Web UI
+      - "50000:50000"   # Agent communication
+    volumes:
+      # Persistencia de datos de Jenkins
+      - jenkins_home:/var/jenkins_home
+      # Socket de Docker para Docker-in-Docker
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Directorio del proyecto para acceso local
+      - ../:/workspace
+      # Script de inicialización para crear usuario admin
+      - ./init-admin.groovy:/var/jenkins_home/init.groovy.d/init-admin.groovy
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false -Xmx2048m -Xms512m
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    networks:
+      - jenkins-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Jenkins Agent con Docker (label: docker)
+  jenkins-agent:
+    image: jenkins/ssh-agent:latest
+    container_name: jenkins-agent-docker
+    privileged: true
+    user: root
+    environment:
+      - JENKINS_AGENT_SSH_PUBKEY=your-public-key-here
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+    networks:
+      - jenkins-network
+    restart: unless-stopped
+    depends_on:
+      - jenkins
+
+  # SonarQube Server (opcional, para análisis de calidad)
+  # NOTA: Para Apple Silicon (ARM64), usar imagen compatible
+  sonarqube:
+    image: sonarqube:9.9-community  # Versión con soporte ARM64
+    container_name: sonarqube-server
+    platform: linux/amd64  # Forzar emulación x86 si es necesario
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - jenkins-network
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:
+    driver: local
+  sonarqube_data:
+    driver: local
+  sonarqube_extensions:
+    driver: local
+  sonarqube_logs:
+    driver: local
+
+networks:
+  jenkins-network:
+    driver: bridge
