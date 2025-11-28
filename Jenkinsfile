@@ -17,7 +17,7 @@ pipeline {
         // ====================================
         stage('Source') {
             steps {
-                echo '📥 Clonando repositorio desde GitHub...'
+                echo 'Clonando repositorio desde GitHub...'
                 // Clona el repositorio Git
                 git 'https://github.com/andrespesantez/unir-cicd.git'
             }
@@ -40,7 +40,7 @@ pipeline {
         // ====================================
         stage('Unit tests') {
             steps {
-                echo '🧪 Running unit tests...'
+                echo 'Running unit tests...'
                 // Ejecuta las pruebas unitarias con pytest
                 // Genera cobertura y reportes en formato XML
                 sh 'make test-unit'
@@ -56,7 +56,7 @@ pipeline {
         // ====================================
         stage('API tests') {
             steps {
-                echo '🌐 Running API tests...'
+                echo 'Running API tests...'
                 // Ejecuta pruebas de integración de la API REST
                 // Levanta el servidor Flask y ejecuta pytest con marca @api
                 sh 'make test-api'
@@ -71,7 +71,7 @@ pipeline {
         // ====================================
         stage('E2E tests') {
             steps {
-                echo '🎭 Running E2E tests...'
+                echo 'Running E2E tests...'
                 // Ejecuta pruebas end-to-end con Cypress
                 // Levanta frontend (Nginx) + backend (Flask) + Cypress
                 sh 'make test-e2e'
@@ -89,7 +89,7 @@ pipeline {
         
         // Se ejecuta SIEMPRE, independientemente del resultado
         always {
-            echo '📊 Procesando resultados de pruebas...'
+            echo 'Procesando resultados de pruebas...'
             
             // Publica los resultados de JUnit para visualización en Jenkins
             // Genera gráficos y tendencias de las pruebas
@@ -103,7 +103,7 @@ pipeline {
         // Se ejecuta SOLO si el pipeline FALLA
         failure {
             // Mensaje de debug en consola
-            echo "❌ Pipeline FAILED - Job: ${env.JOB_NAME}, Build: #${env.BUILD_NUMBER}"
+            echo "Pipeline FAILED - Job: ${env.JOB_NAME}, Build: #${env.BUILD_NUMBER}"
             
             // ====================================
             // NOTIFICACIÓN POR EMAIL (REQUISITO)
@@ -117,7 +117,7 @@ pipeline {
             // Envío de correo en caso de fallo
             // VERSIÓN SIN EMAIL - Solo muestra en consola
             echo "========================================="
-            echo "❌ PIPELINE FAILED - EMAIL NOTIFICATION"
+            echo "PIPELINE FAILED - EMAIL NOTIFICATION"
             echo "========================================="
             echo "Job Name: ${env.JOB_NAME}"
             echo "Build Number: ${env.BUILD_NUMBER}"
@@ -152,12 +152,12 @@ pipeline {
         
         // OPCIONAL: Se puede añadir notificación de éxito también
         // success {
-        //     echo "✅ Pipeline SUCCESS - Job: ${env.JOB_NAME}, Build: #${env.BUILD_NUMBER}"
+        //     echo "Pipeline SUCCESS - Job: ${env.JOB_NAME}, Build: #${env.BUILD_NUMBER}"
         // }
         
         // OPCIONAL: Para casos de tests fallidos pero build exitoso
         // unstable {
-        //     echo "⚠️ Pipeline UNSTABLE - Some tests failed"
+        //     echo "Pipeline UNSTABLE - Some tests failed"
         // }
     }
 }
